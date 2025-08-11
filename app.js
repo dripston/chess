@@ -27,7 +27,7 @@ io.on("connection",function(uniqueSocket){
         uniqueSocket.emit("playerRole","w");
     }else if(!players.black){
         players.black=uniqueSocket.id;
-        uniqueSocket.emit("playerRole","B");
+        uniqueSocket.emit("playerRole","b");
     }
 
     uniqueSocket.on("disconnect",function(){
@@ -41,8 +41,12 @@ io.on("connection",function(uniqueSocket){
 
     uniqueSocket.on("move",function(move){
         try{
-            if(chess.turn()=="w" && uniqueSocket.id!==players.white)return;
-            if(chess.turn()=="B" && uniqueSocket.id!==players.black)return;
+            if(chess.turn()=="w" && uniqueSocket.id!==players.white){
+                uniqueSocket.emit("invalidMove", { reason: "Not your turn" });
+                return;}
+            if(chess.turn()=="b" && uniqueSocket.id!==players.black){
+                uniqueSocket.emit("invalidMove", { reason: "Not your turn" });
+                return;}
 
            const result = chess.move(move);
            if(result){
@@ -57,11 +61,10 @@ io.on("connection",function(uniqueSocket){
         }
         catch(err){
             console.log(err);
-            uniqueSocket.emit("invalid move :",move);
+            uniqueSocket.emit("invalidMove",move);
         }
     })
 });
-
 server.listen(3000,function(){
     console.log("server is running");
 })
