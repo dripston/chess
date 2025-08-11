@@ -3,11 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chess Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: min(90vw, 500px);
+            height: min(90vw, 500px);
+            border: 4px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        .square.light {
+            background: linear-gradient(#f0d9b5, #e6cfae);
+        }
+        .square.dark {
+            background: linear-gradient(#b58863, #a06e50);
+        }
+        .square:hover {
+            filter: brightness(1.15);
+        }
+        .piece {
+            cursor: grab;
+            user-select: none;
+        }
+        .piece.white {
+            color: white;
+            text-shadow: 0 0 3px black;
+        }
+        .piece.black {
+            color: black;
+        }
+    </style>
 </head>
-<body>
-    <h1>index page</h1>
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+<body class="bg-zinc-900">
+    <div class="w-full h-screen flex justify-center items-center ">
+        <div class="chessboard"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
     <script src="js/chessgame.js"></script>
 </body>
 </html>
