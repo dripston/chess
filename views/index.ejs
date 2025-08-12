@@ -1,61 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        .chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            width: min(90vw, 500px);
-            height: min(90vw, 500px);
-            border: 4px solid #333;
-            border-radius: 8px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            overflow: hidden;
-        }
-        .square {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(1.5rem, 5vw, 2rem);
-            font-weight: bold;
-            transition: background-color 0.2s ease;
-        }
-        .square.light {
-            background: linear-gradient(#f0d9b5, #e6cfae);
-        }
-        .square.dark {
-            background: linear-gradient(#b58863, #a06e50);
-        }
-        .square:hover {
-            filter: brightness(1.15);
-        }
-        .piece {
-            cursor: grab;
-            user-select: none;
-        }
-        .piece.white {
-            font-family: "Chess Merida", "Arial Unicode MS", serif;
-            color: rgb(255, 255, 255);
-            text-shadow: 0 0 3px black;
-        }
-        .piece.black {
-            font-family: "Chess Merida", "Arial Unicode MS", serif;
-            color: black;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chess Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .chessboard {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: min(90vw, 500px);
+      height: min(90vw, 500px);
+      border: 4px solid #333;
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .square {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: bold;
+      transition: background-color 0.2s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .square.light {
+      background: linear-gradient(#f0d9b5, #e6cfae);
+    }
+    .square.dark {
+      background: linear-gradient(#b58863, #a06e50);
+    }
+    .square:hover {
+      filter: brightness(1.15);
+    }
+    .piece {
+      cursor: pointer;
+      user-select: none;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Chess Merida", "Arial Unicode MS", serif;
+    }
+    .piece.white {
+      color: #fff;
+      text-shadow: 0 0 3px black;
+    }
+    .piece.black {
+      color: black;
+    }
+    .selected {
+      background-color: rgba(255, 255, 0, 0.5) !important;
+    }
+    .possible-move::before {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(0, 255, 0, 0.4);
+      z-index: 5;
+    }
+    .game-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: white;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
 </head>
-<body class="bg-zinc-900">
-    <div class="w-full h-screen flex justify-center items-center ">
-        <div class="chessboard"></div>
+<body class="bg-zinc-900 min-h-screen flex flex-col items-center justify-center p-4">
+
+  <!-- Header -->
+  <div class="text-center mb-6">
+    <h1 class="text-4xl font-bold tracking-tight text-white mb-3">♟ Chess with LLMs</h1>
+    <div class="flex items-center justify-center gap-5">
+      <div id="game-status" class="text-lg font-medium text-yellow-300">Connecting...</div>
+      <button id="reset-btn" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-500 transition">
+        <i class="fas fa-sync-alt mr-2"></i> New Game
+      </button>
+    </div>
+  </div>
+
+  <!-- Chessboard -->
+  <div class="relative mb-6">
+    <div class="chessboard"></div>
+    <div id="game-message" class="game-overlay hidden">
+      <h2 class="text-3xl font-bold tracking-tight mb-3">Game Over</h2>
+      <p class="text-xl mb-5 font-semibold"></p>
+      <button id="play-again-btn" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-500 transition">
+        <i class="fas fa-play mr-2"></i> Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Cards -->
+  <div class="flex flex-col sm:flex-row gap-6 text-white text-center max-w-3xl w-full">
+    
+    <!-- How to Play -->
+    <div class="bg-zinc-800 p-5 rounded-xl shadow-lg w-full sm:w-1/2">
+      <h3 class="text-lg font-semibold tracking-tight mb-3">How to Play</h3>
+      <ul class="text-left text-sm space-y-2">
+        <li>1. Click on a piece to select it</li>
+        <li>2. Green dots show possible moves</li>
+        <li>3. Click on target square to move</li>
+        <li>4. Pawns auto-promote to Queens</li>
+      </ul>
+    </div>
+    
+    <!-- Players -->
+    <div class="bg-zinc-800 p-5 rounded-xl shadow-lg w-full sm:w-1/2">
+      <h3 class="text-lg font-semibold tracking-tight mb-3">Players</h3>
+      <div class="flex items-center justify-center gap-6">
+        <div class="flex items-center gap-2">
+          <span class="piece white text-2xl">♔</span>
+          <span>You (White)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="piece black text-2xl">♚</span>
+          <span>AI (Black)</span>
+        </div>
+      </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
-    <script src="js/chessgame.js"></script>
+  </div>
+
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="/js/chessgame.js"></script>
 </body>
 </html>
